@@ -1,0 +1,16 @@
+Sandbox for the study of artificial intelligence @ FRI, LJ by matoxxx
+
+-------------------------------------------------------------------------------
+
+Instructions:
+
+1. Download and install pygame for python: sudo apt-get install python-pygame
+2. run in terminal: python main.py
+
+-------------------------------------------------------------------------------
+
+TODO:
+
+- add some status bar
+- add some algoritms for searching place
+- change sprites to just copy right sprite from left, ect..
