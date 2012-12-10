@@ -78,13 +78,13 @@ class Man(pygame.sprite.Sprite):
         return self.speed
 
     def checkCollision(self, destination):
-        x = math.sqrt((destination[0] - self.current_position[0])**2)
-        y = math.sqrt((destination[1] - self.current_position[1])**2)
+        x = math.fabs(destination[0] - self.current_position[0])
+        y = math.fabs(destination[1] - self.current_position[1])
         return (x + y) > 30
 
     def save(self, destination):
-        x = math.sqrt((destination[0] - self.current_position[0])**2)
-        y = math.sqrt((destination[1] - self.current_position[1])**2)
+        x = math.fabs(destination[0] - self.current_position[0])
+        y = math.fabs(destination[1] - self.current_position[1])
 
         a = self.current_position[0]
         b = self.current_position[1]     
