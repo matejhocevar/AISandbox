@@ -89,7 +89,7 @@ class Man(pygame.sprite.Sprite):
         a = self.current_position[0]
         b = self.current_position[1]     
 
-        print a,destination[0]
+        #print a,destination[0]
         
         if a != destination[0] or x > 50:
             if self.current_position[0] - destination[0] > 0:
@@ -124,8 +124,22 @@ class Wounded(pygame.sprite.Sprite):
         self.position[0] = new[0]
         self.position[1] = new[1]
 
+class Wall(pygame.sprite.Sprite):
+    def __init__(self,x,y,width,height):
+        pygame.sprite.Sprite.__init__(self)
+
+        # Make a blue wall, of the size specified in the parameters
+        self.image = pygame.Surface([width, height])
+        self.image.fill(blue)
+ 
+        # Make our top-left corner the passed-in location.
+        self.rect = self.image.get_rect()
+        self.rect.y = y
+        self.rect.x = x
+
 #constants
 white = pygame.Color(255, 255, 255)
+blue = pygame.Color(0,0,255)
 rand = [random.randint(0,w),random.randint(0,h)]
 vel = [0,0]
 
@@ -133,6 +147,15 @@ man = Man(rand,2,vel)
 wounded = Wounded()
 wounded2 = Wounded()
 wounded3 = Wounded()
+
+# Make the walls. (x_pos, y_pos, width, height)
+wall_list=pygame.sprite.RenderPlain()
+wall=Wall(0,0,10,300)
+wall_list.add(wall)
+wall=Wall(10,30,390,10)
+wall_list.add(wall)
+wall=Wall(10,200,100,10)
+wall_list.add(wall)
 
 while True:
     frame.fill(white)
