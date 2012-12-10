@@ -131,6 +131,8 @@ vel = [0,0]
 
 man = Man(rand,2,vel)
 wounded = Wounded()
+wounded2 = Wounded()
+wounded3 = Wounded()
 
 while True:
     frame.fill(white)
