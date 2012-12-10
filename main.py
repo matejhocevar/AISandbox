@@ -197,5 +197,6 @@ while True:
             if event.key == K_ESCAPE:
                 pygame.event.post(pygame.event.Event(QUIT))
 
+    wall_list.draw(frame)
     pygame.display.update()
     fpsClock.tick(30) 
