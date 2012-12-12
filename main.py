@@ -33,7 +33,7 @@ class Man(pygame.sprite.Sprite):
         self.right = pygame.image.load('assets/m_right.png')
         self.walkingRight = pygame.image.load('assets/m_walking_right.png')
 
-        self.dimension = [33,16]
+        self.dimension = [15,32]
         self.rect = self.current_direction.get_rect()
         self.current_direction = self.standing
         self.current_position = [w/2,h/2]
@@ -130,15 +130,18 @@ class Man(pygame.sprite.Sprite):
 
     def collisionDetection(self, wall):
 		x,y,width,height = wall.get_info();
-		man_x, man_y = self.current_position
-		man_width, man_height = self.dimension
-		collision = False
-		if (man_x in range(x, x+width)) and (man_y in range(y, y+height)):
+		min_x, min_y = self.current_position
+		max_x = min_x + self.dimension[0]
+		max_y = min_y + self.dimension[1]
+
+		l_x = x - self.dimension[0]
+		l_y = y - self.dimension[1]
+
+		h_x = x + width
+		h_y = y + height
+
+		if (min_x in range(l_x, h_x)) and (min_y in range(l_y, h_y)):
 			return True
-		for a in range(man_x, man_x+man_width):
-			for b in range(man_y, man_y+man_width):
-				if (a in range(x, x+width)) and (b in range(y, y+height)):
-					return True
 		return False
 
     def save(self, destination):
@@ -147,8 +150,6 @@ class Man(pygame.sprite.Sprite):
 
         a = self.current_position[0]
         b = self.current_position[1]     
-
-        #print a,destination[0]
         
         if a != destination[0] or x > 50:
             if self.current_position[0] - destination[0] > 0:
@@ -200,14 +201,13 @@ class Wounded(pygame.sprite.Sprite):
         self.position[0] = new[0]
         self.position[1] = new[1]
 
-man = Man(rand,2,vel)
+man = Man(rand,3,vel)
 wounded = Wounded()
 wounded2 = Wounded()
 wounded3 = Wounded()
 movingsprites = pygame.sprite.RenderPlain()
 movingsprites.add(man)
 
-# Make the walls. (x_pos, y_pos, width, height)
 wall_list=pygame.sprite.RenderPlain()
 wall=Wall(0,0,10,600)
 wall_list.add(wall)
@@ -215,19 +215,19 @@ wall=Wall(10,0,790,10)
 wall_list.add(wall)
 wall=Wall(10,200,100,10)
 wall_list.add(wall)
+wall=Wall(w,0,h,10)
+wall_list.add(wall)
+wall=Wall(h,200,w,10)
+wall_list.add(wall)
 
 while True:
     frame.fill(white)
     man.update(wall_list)
      
-    #movingsprites.draw(frame)
     wall_list.draw(frame)
-    #pygame.display.flip()
     man.updatePosition(wall_list)
 
     frame.blit(wounded.getDirection(), wounded.getPosition()) 
-    frame.blit(wounded2.getDirection(), wounded2.getPosition()) 
-    frame.blit(wounded3.getDirection(), wounded3.getPosition()) 
     frame.blit(man.getDirection(), man.getPosition())
 
     #if man.checkCollision(wounded.getPosition()):
@@ -262,7 +262,6 @@ while True:
 	              man.setVelocity([0,man.getSpeed()])
 	      if event.key == K_ESCAPE:
 	          pygame.event.post(pygame.event.Event(QUIT))
-    #wall_list.draw(frame)
-    #movingsprites.draw(frame)
+
     pygame.display.flip()
     fpsClock.tick(30) 
