@@ -15,7 +15,7 @@ pygame.display.set_caption('Pygame sandbox')
 class Man(pygame.sprite.Sprite):
     def __init__(self, position, speed, vel):
         pygame.sprite.Sprite.__init__(self)
-        self.current_direction = pygame.Surface([17, 32])
+        self.current_direction = pygame.Surface([15, 15])
         self.standing = pygame.image.load('assets/m_standing.png')
         self.left = pygame.image.load('assets/m_left.png')
         self.walkingLeft = pygame.image.load('assets/m_walking_left.png')
@@ -34,15 +34,27 @@ class Man(pygame.sprite.Sprite):
         self.animation_interval = 25
         self.solve = False
 
-    def updatePosition(self):
+    def updatePosition(self, walls):
+        x,y = self.current_position
         self.current_position[0] += self.vel[0]
+
+        #collide = pygame.sprite.spritecollide(self, walls, False)
+        #if collide:
+            #self.current_position[0] = x
+            #print walls
+
         self.current_position[1] += self.vel[1]
 
+        #collide = pygame.sprite.spritecollide(self, walls, False)
+        #if collide:
+            #self.current_position[1] = y
+            #print walls
+
     def setVelocity(self, vel):
-        #self.vel[0] += vel[0]
-        #self.vel[1] += vel[1]
-        self.vel[0] = vel[0]
-        self.vel[1] = vel[1]
+        self.vel[0] += vel[0]
+        self.vel[1] += vel[1]
+        #self.vel[0] = vel[0]
+        #self.vel[1] = vel[1]
 
     def getDirection(self):
         if self.vel[0] + self.vel[1] == 0:
@@ -147,28 +159,35 @@ man = Man(rand,2,vel)
 wounded = Wounded()
 wounded2 = Wounded()
 wounded3 = Wounded()
+movingsprites = pygame.sprite.RenderPlain()
+movingsprites.add(man)
 
 # Make the walls. (x_pos, y_pos, width, height)
 wall_list=pygame.sprite.RenderPlain()
-wall=Wall(0,0,10,300)
+wall=Wall(0,0,10,600)
 wall_list.add(wall)
-wall=Wall(10,30,390,10)
+wall=Wall(10,0,790,10)
 wall_list.add(wall)
 wall=Wall(10,200,100,10)
 wall_list.add(wall)
 
 while True:
     frame.fill(white)
-    man.updatePosition()
+    man.update(wall_list)
+     
+    #movingsprites.draw(frame)
+    wall_list.draw(frame)
+    pygame.display.flip()
+    man.updatePosition(wall_list)
 
     frame.blit(wounded.getDirection(), wounded.getPosition()) 
     frame.blit(man.getDirection(), man.getPosition())
 
-    if man.checkCollision(wounded.getPosition()):
-        man.save(wounded.getPosition())
-    else:
+    #if man.checkCollision(wounded.getPosition()):
+        #man.save(wounded.getPosition())
+    #else:
         #man.stopIt()
-        wounded.setPosition([random.randint(0,w),random.randint(0,h)])
+        #wounded.setPosition([random.randint(0,w),random.randint(0,h)])
 
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -196,7 +215,7 @@ while True:
                     man.setVelocity([0,man.getSpeed()])
             if event.key == K_ESCAPE:
                 pygame.event.post(pygame.event.Event(QUIT))
-
-    wall_list.draw(frame)
-    pygame.display.update()
+    #wall_list.draw(frame)
+    #movingsprites.draw(frame)
+    pygame.display.flip()
     fpsClock.tick(30) 
