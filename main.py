@@ -7,9 +7,16 @@ fpsClock = pygame.time.Clock()
 
 h = 480
 w = 640
+
 #create frame
 frame = pygame.display.set_mode((w, h))
-pygame.display.set_caption('Pygame sandbox')
+pygame.display.set_caption('Pygame sandbox')  
+
+#constants
+white = pygame.Color(255, 255, 255)
+blue = pygame.Color(0,0,255)
+rand = [random.randint(0,w),random.randint(0,h)]
+vel = [0,0]
 
 #class
 class Man(pygame.sprite.Sprite):
@@ -26,6 +33,7 @@ class Man(pygame.sprite.Sprite):
         self.right = pygame.image.load('assets/m_right.png')
         self.walkingRight = pygame.image.load('assets/m_walking_right.png')
 
+        self.dimension = [33,16]
         self.rect = self.current_direction.get_rect()
         self.current_direction = self.standing
         self.current_position = [w/2,h/2]
@@ -37,18 +45,15 @@ class Man(pygame.sprite.Sprite):
     def updatePosition(self, walls):
         x,y = self.current_position
         self.current_position[0] += self.vel[0]
-
-        #collide = pygame.sprite.spritecollide(self, walls, False)
-        #if collide:
-            #self.current_position[0] = x
-            #print walls
-
         self.current_position[1] += self.vel[1]
 
-        #collide = pygame.sprite.spritecollide(self, walls, False)
-        #if collide:
-            #self.current_position[1] = y
-            #print walls
+        collision = False
+        for wall in walls:
+			collision |= self.collisionDetection(wall)
+
+        if collision:
+        	self.current_position[0] = x
+        	self.current_position[1] = y
 
     def setVelocity(self, vel):
         self.vel[0] += vel[0]
@@ -59,12 +64,12 @@ class Man(pygame.sprite.Sprite):
     def getDirection(self):
         abs_x = math.fabs(self.vel[0])
         abs_y = math.fabs(self.vel[1])
-
+        
+        #print abs_x, abs_y
         if self.vel[0] + self.vel[1] == 0:
             return self.standing
 
-        elif abs_x == abs_y: #here somewhere is bug moving up/down and left/right at the same time
-su
+        if abs_x == abs_y: #here somewhere is bug moving up/down and left/right at the same time
             if self.vel[1] > 0:
                 if self.vel[0] < 0:
                     if self.current_position[0] % self.animation_interval < self.animation_interval/2:
@@ -123,6 +128,19 @@ su
         y = math.fabs(destination[1] - self.current_position[1])
         return (x + y) > 30
 
+    def collisionDetection(self, wall):
+		x,y,width,height = wall.get_info();
+		man_x, man_y = self.current_position
+		man_width, man_height = self.dimension
+		collision = False
+		if (man_x in range(x, x+width)) and (man_y in range(y, y+height)):
+			return True
+		for a in range(man_x, man_x+man_width):
+			for b in range(man_y, man_y+man_width):
+				if (a in range(x, x+width)) and (b in range(y, y+height)):
+					return True
+		return False
+
     def save(self, destination):
         x = math.fabs(destination[0] - self.current_position[0])
         y = math.fabs(destination[1] - self.current_position[1])
@@ -142,8 +160,25 @@ su
                 if self.current_position[1] - destination[1] > 0:
                         self.setVelocity([0,-1 * self.getSpeed()])
                 else:
-                        self.setVelocity([0,1 * self.getSpeed()])   
-    
+                        self.setVelocity([0,1 * self.getSpeed()]) 
+
+class Wall(pygame.sprite.Sprite):
+    def __init__(self,x,y,width,height):
+        pygame.sprite.Sprite.__init__(self)
+
+        # Make a blue wall, of the size specified in the parameters
+        self.image = pygame.Surface([width, height])
+        self.image.fill(blue)
+ 
+        # Make our top-left corner the passed-in location.
+        self.rect = self.image.get_rect()
+        self.rect.y = y
+        self.rect.x = x
+        self.width = width
+        self.height = height
+    def get_info(self):
+		return [self.rect.x,self.rect.y,self.width,self.height]	
+
 class Wounded(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -164,25 +199,6 @@ class Wounded(pygame.sprite.Sprite):
     def setPosition(self, new):
         self.position[0] = new[0]
         self.position[1] = new[1]
-
-class Wall(pygame.sprite.Sprite):
-    def __init__(self,x,y,width,height):
-        pygame.sprite.Sprite.__init__(self)
-
-        # Make a blue wall, of the size specified in the parameters
-        self.image = pygame.Surface([width, height])
-        self.image.fill(blue)
- 
-        # Make our top-left corner the passed-in location.
-        self.rect = self.image.get_rect()
-        self.rect.y = y
-        self.rect.x = x
-
-#constants
-white = pygame.Color(255, 255, 255)
-blue = pygame.Color(0,0,255)
-rand = [random.randint(0,w),random.randint(0,h)]
-vel = [0,0]
 
 man = Man(rand,2,vel)
 wounded = Wounded()
@@ -210,40 +226,42 @@ while True:
     man.updatePosition(wall_list)
 
     frame.blit(wounded.getDirection(), wounded.getPosition()) 
+    frame.blit(wounded2.getDirection(), wounded2.getPosition()) 
+    frame.blit(wounded3.getDirection(), wounded3.getPosition()) 
     frame.blit(man.getDirection(), man.getPosition())
 
     #if man.checkCollision(wounded.getPosition()):
-        #man.save(wounded.getPosition())
+	  #man.save(wounded.getPosition())
     #else:
-        #man.stopIt()
-        #wounded.setPosition([random.randint(0,w),random.randint(0,h)])
+	  #man.stopIt()
+	  #wounded.setPosition([random.randint(0,w),random.randint(0,h)])
 
     for event in pygame.event.get():
-        if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
-        elif event.type == KEYUP and event.type != KEYDOWN:
-            if event.key in (K_LEFT, K_RIGHT, K_UP, K_DOWN):
-                if event.key == K_LEFT:
-                    man.setVelocity([1 * man.getSpeed(),0])
-                elif event.key == K_RIGHT:
-                    man.setVelocity([-1 * man.getSpeed(),0])
-                elif event.key == K_UP:
-                    man.setVelocity([0,1 * man.getSpeed()])
-                elif event.key == K_DOWN:
-                    man.setVelocity([0,-1 * man.getSpeed()])
-        elif event.type == KEYDOWN:
-            if event.key in (K_LEFT, K_RIGHT, K_UP, K_DOWN):
-                if event.key == K_LEFT:
-                    man.setVelocity([-1 * man.getSpeed(),0])
-                elif event.key == K_RIGHT:
-                    man.setVelocity([man.getSpeed(),0])
-                elif event.key == K_UP:
-                    man.setVelocity([0,-1 * man.getSpeed()])
-                elif event.key == K_DOWN:
-                    man.setVelocity([0,man.getSpeed()])
-            if event.key == K_ESCAPE:
-                pygame.event.post(pygame.event.Event(QUIT))
+	  if event.type == QUIT:
+	      pygame.quit()
+	      sys.exit()
+	  elif event.type == KEYUP and event.type != KEYDOWN:
+	      if event.key in (K_LEFT, K_RIGHT, K_UP, K_DOWN):
+	          if event.key == K_LEFT:
+	              man.setVelocity([1 * man.getSpeed(),0])
+	          elif event.key == K_RIGHT:
+	              man.setVelocity([-1 * man.getSpeed(),0])
+	          elif event.key == K_UP:
+	              man.setVelocity([0,1 * man.getSpeed()])
+	          elif event.key == K_DOWN:
+	              man.setVelocity([0,-1 * man.getSpeed()])
+	  elif event.type == KEYDOWN:
+	      if event.key in (K_LEFT, K_RIGHT, K_UP, K_DOWN):
+	          if event.key == K_LEFT:
+	              man.setVelocity([-1 * man.getSpeed(),0])
+	          elif event.key == K_RIGHT:
+	              man.setVelocity([man.getSpeed(),0])
+	          elif event.key == K_UP:
+	              man.setVelocity([0,-1 * man.getSpeed()])
+	          elif event.key == K_DOWN:
+	              man.setVelocity([0,man.getSpeed()])
+	      if event.key == K_ESCAPE:
+	          pygame.event.post(pygame.event.Event(QUIT))
     #wall_list.draw(frame)
     #movingsprites.draw(frame)
     pygame.display.flip()
