@@ -64,6 +64,7 @@ class Man(pygame.sprite.Sprite):
             return self.standing
 
         elif abs_x == abs_y: #here somewhere is bug moving up/down and left/right at the same time
+elif abs_x == abs_y: #here somewhere is bug moving up/down and left/right at the same time
             if self.vel[1] > 0:
                 if self.vel[0] < 0:
                     if self.current_position[0] % self.animation_interval < self.animation_interval/2:
