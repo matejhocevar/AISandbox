@@ -57,24 +57,52 @@ class Man(pygame.sprite.Sprite):
         #self.vel[1] = vel[1]
 
     def getDirection(self):
+        abs_x = math.fabs(self.vel[0])
+        abs_y = math.fabs(self.vel[1])
+
         if self.vel[0] + self.vel[1] == 0:
             return self.standing
-        elif vel[0] < 0:
+
+        elif abs_x == abs_y: #here somewhere is bug moving up/down and left/right at the same time
+            if self.vel[1] > 0:
+                if self.vel[0] < 0:
+                    if self.current_position[0] % self.animation_interval < self.animation_interval/2:
+                        return self.walkingLeft
+                    return self.left
+                else:
+                     if self.current_position[0] % self.animation_interval < self.animation_interval/2:
+                        return self.walkingRight
+                     return self.right
+            elif self.vel[1] < 0:
+                if self.vel[0] < 0:
+                    if self.current_position[0] % self.animation_interval < self.animation_interval/2:
+                        return self.walkingLeft
+                    return self.left
+                else:
+                     if self.current_position[0] % self.animation_interval < self.animation_interval/2:
+                        return self.walkingRight
+                     return self.right
+
+        elif self.vel[0] < 0:
             if self.current_position[0] % self.animation_interval < self.animation_interval/2:
                 return self.walkingLeft
             return self.left
-        elif vel[0] > 0:
+
+        elif self.vel[0] > 0:
             if self.current_position[0] % self.animation_interval < self.animation_interval/2:
                 return self.walkingRight
             return self.right
-        elif vel[1] < 0:
+
+        elif self.vel[1] < 0:
             if self.current_position[1] % self.animation_interval < self.animation_interval/2:
-                return self.walkingUp
+                if vel[1] < vel[0]:
+                    return self.walkingUp
             return self.up
-        elif vel[1] > 0:
+
+        elif self.vel[1] > 0:
             if self.current_position[1] % self.animation_interval < self.animation_interval/2:
                 return self.walkingDown
-            return self.down
+            return self.down                
 
     def getPosition(self):
         return self.current_position
@@ -177,7 +205,7 @@ while True:
      
     #movingsprites.draw(frame)
     wall_list.draw(frame)
-    pygame.display.flip()
+    #pygame.display.flip()
     man.updatePosition(wall_list)
 
     frame.blit(wounded.getDirection(), wounded.getPosition()) 
