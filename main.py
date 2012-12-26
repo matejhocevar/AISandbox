@@ -1,4 +1,4 @@
-import pygame, sys, math, random
+import pygame, sys, math, random, search
 from pygame.locals import *
 
 #game engine init
@@ -12,10 +12,14 @@ w = 640
 frame = pygame.display.set_mode((w, h))
 pygame.display.set_caption('Pygame sandbox')  
 
+
+def getRandomPosition():
+	return [random.randint(0,w),random.randint(0,h)]
+	
 #constants
 white = pygame.Color(255, 255, 255)
 blue = pygame.Color(0,0,255)
-rand = [random.randint(0,w),random.randint(0,h)]
+rand = getRandomPosition()
 vel = [0,0]
 
 #class
@@ -40,12 +44,16 @@ class Man(pygame.sprite.Sprite):
         self.speed = speed
         self.vel = vel
         self.animation_interval = 25
-        self.solve = False
+        self.solved = False
+        self.wounded_position = [0,0]
+        self.walls = []
 
-    def updatePosition(self, walls):
+    def updatePosition(self, walls, wounded):
         x,y = self.current_position
         self.current_position[0] += self.vel[0]
         self.current_position[1] += self.vel[1]
+        self.walls = walls
+        self.wounded_position = wounded
 
         collision = False
         for wall in walls:
@@ -54,7 +62,7 @@ class Man(pygame.sprite.Sprite):
         if collision:
         	self.current_position[0] = x
         	self.current_position[1] = y
-
+		
     def setVelocity(self, vel):
         self.vel[0] += vel[0]
         self.vel[1] += vel[1]
@@ -123,6 +131,19 @@ class Man(pygame.sprite.Sprite):
     def getSpeed(self):
         return self.speed
 
+    def c(self, rx,ry):
+        x,y = self.current_position
+        self.current_position[0] += rx
+        self.current_position[1] += ry
+
+        collision = False
+        for wall in self.walls:
+			collision |= self.collisionDetection(wall)
+        if collision:
+        	self.current_position[0] = x
+        	self.current_position[1] = y
+        return collision
+			
     def checkCollision(self, destination):
         x = math.fabs(destination[0] - self.current_position[0])
         y = math.fabs(destination[1] - self.current_position[1])
@@ -131,8 +152,6 @@ class Man(pygame.sprite.Sprite):
     def collisionDetection(self, wall):
 		x,y,width,height = wall.get_info();
 		min_x, min_y = self.current_position
-		max_x = min_x + self.dimension[0]
-		max_y = min_y + self.dimension[1]
 
 		l_x = x - self.dimension[0]
 		l_y = y - self.dimension[1]
@@ -163,6 +182,31 @@ class Man(pygame.sprite.Sprite):
                 else:
                         self.setVelocity([0,1 * self.getSpeed()]) 
 
+    def GenerateMoves(self):
+        rx, ry = self.current_position
+        moves = []
+        for x in [-10,0,10]:
+            for y in [-10,0,10]:
+                if (x or y) and \
+                   rx+x < w and rx+x >= 0 and \
+                   ry+y < h and ry+y >= 0:# and \
+                   #not self.c(rx+x,ry+y):
+                    moves.append( ([x,y], math.sqrt(x**2+y**2)) )
+        return moves	
+
+    def Move(self, move_cost):
+        move, cost = move_cost
+        self.current_position[0] += move[0]
+        self.current_position[1] += move[1]
+
+    def UndoMove(self, move_cost):
+        move, cost = move_cost
+        self.current_position[0] -= move[0]
+        self.current_position[1] -= move[1]
+
+    def Evaluate(self):
+        return math.sqrt((self.current_position[0] - self.wounded_position[0]) ** 2 + (self.current_position[1] - self.wounded_position[1]) ** 2)
+
 class Wall(pygame.sprite.Sprite):
     def __init__(self,x,y,width,height):
         pygame.sprite.Sprite.__init__(self)
@@ -177,6 +221,7 @@ class Wall(pygame.sprite.Sprite):
         self.rect.x = x
         self.width = width
         self.height = height
+
     def get_info(self):
 		return [self.rect.x,self.rect.y,self.width,self.height]	
 
@@ -220,12 +265,49 @@ wall_list.add(wall)
 wall=Wall(h,200,w,10)
 wall_list.add(wall)
 
-while True:
+
+def ID(Pos):
+    # iterative deepening
+    depth = 0
+    while True:
+        Path = DF(Pos, depth)
+        if Path != None:
+            return Path
+        depth += 1
+
+def DF(p, depth):
+    # depth-first search
+    if depth < 0: return None
+    if p.solved: return []
+    for move in p.GenerateMoves():
+        p.Move(move)
+        FoundPath = DF(p, depth-1)
+        paint()
+        p.UndoMove(move)
+        if FoundPath != None:
+            FoundPath.insert(0, move)
+            return FoundPath
+    return None
+
+def DF_basic(Pos):
+    # depth-first search
+    if Pos.solved: return []
+    for move in Pos.GenerateMoves():
+        paint()
+        Pos.Move(move)
+        FoundPath = DF_basic(Pos)
+        Pos.UndoMove(move)
+        if FoundPath != None:
+            FoundPath.insert(0, move)
+            return FoundPath
+    return None
+
+def paint():
     frame.fill(white)
-    man.update(wall_list)
+    man.update(wall_list, wounded.getPosition())
      
     wall_list.draw(frame)
-    man.updatePosition(wall_list)
+    man.updatePosition(wall_list, wounded.getPosition())
 
     frame.blit(wounded.getDirection(), wounded.getPosition()) 
     frame.blit(man.getDirection(), man.getPosition())
@@ -235,7 +317,7 @@ while True:
     #else:
 	  #man.stopIt()
 	  #wounded.setPosition([random.randint(0,w),random.randint(0,h)])
-
+    #search.ID(man)
     for event in pygame.event.get():
 	  if event.type == QUIT:
 	      pygame.quit()
@@ -265,3 +347,5 @@ while True:
 
     pygame.display.flip()
     fpsClock.tick(30) 
+
+DF_basic(man)
